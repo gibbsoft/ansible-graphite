@@ -1,5 +1,9 @@
 ---
 
+- name: reload systemd
+  sudo: yes
+  command: systemctl daemon-reload
+
 - name: restart carbon-cache
   service: name=carbon-cache state=restarted
 

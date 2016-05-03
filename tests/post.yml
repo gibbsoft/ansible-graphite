@@ -8,7 +8,10 @@
       when: ansible_os_family == "Debian"
 
     - name: Install nginx (RedHat)
-      yum: name=nginx
+      yum: name={{ item }}
+      with_items:
+        - nginx
+        - libsemanage-python
       when: ansible_os_family == "RedHat"
 
     - name: Install nginx config
@@ -16,8 +19,16 @@
         src: templates/graphite.conf.j2
         dest: /etc/nginx/conf.d/graphite.conf
 
+    - name: Ensure selinux allows nginx to proxy to tomcat
+      seboolean:
+        name: httpd_can_network_connect
+        state: true
+        persistent: true
+      ignore_errors: true
+      when: ansible_os_family == "RedHat"
+
     - name: Start nginx
-      service: name=nginx state=started
+      service: name=nginx state=restarted
 
     # Ready to check the installation
 

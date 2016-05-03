@@ -1,4 +1,4 @@
---- 
+---
 
 - name: Install packages with apt
   apt: name={{ item }} state=present update_cache=true
@@ -13,12 +13,15 @@
     - sudo
     - libffi-dev
 
+- name: Create user
+  user: name={{ graphite_user }} comment="Graphite user" state=present groups="sudo"
+
 - name: Install init.d script for carbon-cache
   template: src=debian_carbon_service.j2 dest=/etc/init.d/carbon-cache
   notify: restart carbon-cache
   when: ansible_distribution_release == "wheezy" or ansible_distribution_release == "trusty"
 
-- name: Install systemd unit carbon-cache.service 
+- name: Install systemd unit carbon-cache.service
   template: src=debian_carbon_service_systemd.j2 dest=/etc/systemd/system/carbon-cache.service
   when: ansible_distribution_release == "jessie"
   register: ccunit

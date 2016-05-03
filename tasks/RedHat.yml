@@ -22,6 +22,9 @@
     - sudo
     - libffi-devel
 
+- name: Create user
+  user: name={{ graphite_user }} comment="Graphite user" state=present groups="wheel"
+
 - name: "Install Twisted 15.3.0 on 6.x (never versions req python 2.7)"
   pip: name=Twisted==15.3.0
   when: ansible_distribution_version.split(".")[0]|int < 7
@@ -32,6 +35,19 @@
 - name: Install carbon-cache init.d script
   template: src=redhat_carbon_service.j2 dest=/etc/init.d/carbon-cache
   notify: restart carbon-cache
+  when: ansible_distribution_version.split(".")[0]|int < 7
+
+- name: Install carbon-cache systemd script
+  template: >
+    src=redhat_carbon_service_systemd.j2
+    dest=/etc/systemd/system/carbon-cache.service
+    owner=root
+    group=root
+    mode=0644
+  when: ansible_distribution_version.split(".")[0]|int >= 7
+  notify:
+    - reload systemd
+    - restart carbon-cache
 
 - name: Install uwsgi default settings
   template: src=redhat_uwsgi_default.ini.j2 dest=/etc/uwsgi_default.ini
@@ -44,9 +60,45 @@
 - name: Install uwsgi init.d script
   template: src=redhat_uwsgi_service.j2 dest=/etc/init.d/uwsgi
   notify: restart uwsgi
+  when: ansible_distribution_version.split(".")[0]|int < 7
+
+- name: Ensure uwsgi run directory exists
+  file: >
+    path=/run/uwsgi/graphite
+    owner={{ graphite_user }}
+    group={{ graphite_user }}
+    mode=0775
+    state=directory
+  when: ansible_distribution_version.split(".")[0]|int >= 7
+
+- name: Check uwsgi log file exists
+  stat: path=/var/log/uwsgi_graphite.log
+  register: uwsgi_log_file
+
+- name: Ensure uwsgi log file exists
+  file: >
+    path=/var/log/uwsgi_graphite.log
+    owner={{ graphite_user }}
+    group={{ graphite_user }}
+    mode=0775
+    state=touch
+  when: ansible_distribution_version.split(".")[0]|int >= 7 and uwsgi_log_file.stat.exists == False
+
+- name: Install uwsgi systemd script
+  template: >
+    src=redhat_uwsgi_service_systemd.j2
+    dest=/etc/systemd/system/uwsgi.service
+    owner=root
+    group=root
+    mode=0644
+  when: ansible_distribution_version.split(".")[0]|int >= 7
+  notify:
+    - reload systemd
+    - restart uwsgi
 
 - name: Check the install scripts perms
   file: path=/etc/init.d/{{ item }} mode=0755 owner=root group=root
   with_items:
     - carbon-cache
     - uwsgi
+  when: ansible_distribution_version.split(".")[0]|int < 7

@@ -1,0 +1,16 @@
+[Unit]
+Description=carbon-cache instance (graphite)
+After=network.target
+
+[Service]
+Type=forking
+User={{ graphite_user }}
+Group={{ graphite_user }}
+GuessMainPID=false
+PIDFile=/opt/graphite/storage/carbon-cache-a.pid
+ExecStartPre=-/bin/rm -f /opt/graphite/storage/carbon-cache-a.pid
+ExecStart=/opt/graphite/bin/carbon-cache.py --pidfile=/opt/graphite/storage/carbon-cache-a.pid --instance=a start
+ExecStop=/opt/graphite/bin/carbon-cache.py --pidfile=/opt/graphite/storage/carbon-cache-a.pid --instance=a stop
+
+[Install]
+WantedBy=multi-user.target

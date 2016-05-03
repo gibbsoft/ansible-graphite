@@ -1,0 +1,17 @@
+[Unit]
+Description=uwsgi application server
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+Environment="GOMAXPROCS=`nproc`"
+Restart=on-failure
+User={{ graphite_user }}
+Group={{ graphite_user }}
+WorkingDirectory=/opt/graphite/conf
+ExecStart=/usr/bin/uwsgi --ini /etc/uwsgi_default.ini --ini /etc/uwsgi_graphite.ini
+ExecReload=/bin/kill -HUP $MAINPID
+KillSignal=SIGINT
+
+[Install]
+WantedBy=multi-user.target
