@@ -18,7 +18,7 @@ env:
 
 install:
   # Download ansible-role-tester and setup the enviroment
-  - wget https://raw.githubusercontent.com/nsg/ansible-role-tester/master/test/test.sh
+  - wget http://s3.gibbsoft.com/travisci/test.sh
   - chmod +x test.sh
 
 script:
