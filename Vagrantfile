@@ -61,6 +61,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     ansible.verbose  = true
     ansible.playbook = 'tests/main.yml'
   end
+  # Again, for idempotence
+  config.vm.provision 'ansible' do |ansible|
+    ansible.sudo     = true
+    ansible.verbose  = true
+    ansible.playbook = 'tests/main.yml'
+  end
   config.vm.provision 'ansible' do |ansible|
     ansible.sudo     = true
     ansible.verbose  = true
